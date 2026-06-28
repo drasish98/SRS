@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Master Recall | NEET PG Edition</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* --- Themes --- */
+        :root { 
+            /* Light Olive Green Mode for NEET PG */
+            --bg: #EAECE2; 
+            --surface: #F4F5F0; 
+            --text: #2C332A; 
+            --accent: #5C715E; 
+            --border: #D1D6CB; 
+            --shadow: rgba(0, 0, 0, 0.05);
+            
+            /* Status Colors */
+            --status-red: #E06C6C;
+            --status-orange: #E6A854;
+            --status-green: #59A88C;
+            --status-purple: #8B78E6; /* For R5+ */
+
+            --font-scale: 16px;
+        }
+
+        /* AMOLED Pitch Black Dark Mode */
+        [data-theme="dark"] {
+            --bg: #000000;
+            --surface: #121212;
+            --text: #E0E0E0;
+            --border: #2A2A2A;
+            --accent: #55E6C1;
+            --shadow: rgba(255, 255, 255, 0.02);
+        }
+
+        html { font-size: var(--font-scale); transition: font-size 0.2s ease; }
+        
+        * { box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; transition: background 0.3s, color 0.3s, border-color 0.3s; }
+        
+        body { margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; }
+
+        /* --- Header --- */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(var(--surface), 0.8); backdrop-filter: blur(10px); padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 20;
+            flex-wrap: wrap; gap: 0.5rem;
+        }
+
+        .header-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        .clock { font-family: monospace; font-size: 1.1rem; font-weight: bold; color: var(--accent); letter-spacing: 1px;}
+
+        button { background: var(--accent); color: #fff; border: none; padding: 0.6rem 1rem; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 6px var(--shadow); }
+        button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .icon-btn { background: transparent; color: var(--text); font-size: 1.2rem; padding: 0.3rem; cursor: pointer; font-weight: bold; box-shadow: none; }
+        #forgivenessBtn { background: var(--border); color: var(--text); padding: 0.5rem 0.8rem; font-size: 0.85rem; }
+
+        /* --- Layout & Sidebar --- */
+        .layout { display: flex; height: calc(100vh - 75px); }
+        .sidebar {
+            width: 260px; background: var(--surface); border-right: 1px solid var(--border);
+            padding: 1.25rem; display: flex; flex-direction: column; gap: 0.8rem;
+            transform: translateX(0); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto; z-index: 15;
+        }
+        .sidebar.closed { transform: translateX(-100%); position: absolute; height: 100%; }
+        
+        .nav-item {
+            padding: 0.8rem 1rem; border-radius: 8px; cursor: pointer; border: 1px solid transparent; text-align: left; background: transparent; color: var(--text); font-weight: 500; font-size: 1rem; transition: 0.2s; box-shadow: none;
+        }
+        .nav-item:hover { background: var(--bg); }
+        .nav-item.active-nav { background: var(--accent); color: #fff; }
+
+        .sidebar-bottom { margin-top: auto; border-top: 1px dashed var(--border); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .sidebar-bottom button { background: var(--bg); color: var(--text); border: 1px solid var(--border); box-shadow: none; padding: 0.5rem; font-size: 0.85rem;}
+        .backup-text { font-size: 0.75rem; color: var(--text); opacity: 0.6; text-align: center; }
+
+        /* --- Main Content --- */
+        .main-content { flex-grow: 1; padding: 1.5rem; overflow-y: auto; position: relative; }
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .card { background: var(--surface); padding: 1.5rem; border-radius: 16px; box-shadow: 0 8px 24px var(--shadow); margin-bottom: 1.5rem; border: 1px solid var(--border); }
+
+        /* --- Dashboard Top & Daily Quote --- */
+        .dashboard-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+        .daily-quote { 
+            font-size: 1.25rem; font-weight: 800; font-style: italic; color: var(--accent); 
+            text-align: right; max-width: 350px; line-height: 1.3; opacity: 0.9;
+        }
+
+        /* --- Inputs & Lists --- */
+        .input-group { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+        select, input { padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); flex-grow: 1; font-size: 1rem; transition: 0.2s; outline: none; }
+        select:focus, input:focus { border-color: var(--accent); }
+        
+        .task-list { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1rem; }
+        .task-item { padding: 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--status-red); box-shadow: 0 2px 8px var(--shadow); transition: transform 0.2s; }
+        .task-item:hover { transform: translateX(5px); }
+        .task-badge { background: var(--bg); border: 1px solid var(--border); padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem; margin-left: 0.5rem; font-weight: bold;}
+
+        /* --- Modals & Utilities --- */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--surface); padding: 2rem; border-radius: 16px; width: 90%; max-width: 400px; border: 1px solid var(--border); }
+        .hidden { display: none !important; }
+
+        /* --- Subject View --- */
+        .topic-badge { 
+            padding: 0.6rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 500; 
+            color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); 
+            display: inline-block; cursor: pointer;
+            user-select: none; -webkit-user-select: none; /* Prevents text selection on long press */
+            transition: transform 0.1s;
+        }
+        .topic-badge:active { transform: scale(0.95); }
+
+        /* --- Calendar CSS (GOOGLE CALENDAR STYLE) --- */
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+        .cal-day-header { text-align: center; font-weight: bold; padding: 10px 0; color: var(--text); }
+        
+        .cal-cell { 
+            background: var(--bg); border: 1px solid var(--border); min-height: 120px; 
+            padding: 5px; border-radius: 6px; display: flex; flex-direction: column; overflow-y: auto; 
+        }
+        
+        .cal-date { font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; opacity: 0.7; }
+        .cal-cell.today { border: 2px solid var(--accent); background: var(--surface); }
+        
+        .cal-task { 
+            font-size: 0.75rem; background: var(--surface); margin-bottom: 3px; padding: 4px; 
+            border-radius: 4px; border-left: 3px solid; line-height: 1.2; word-break: break-word;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-actions { justify-content: flex-end; width: 100%; margin-top: 0.5rem; }
+            .clock { font-size: 0.9rem; }
+            .dashboard-top { flex-direction: column-reverse; gap: 10px; }
+            .daily-quote { text-align: left; font-size: 1.1rem; max-width: 100%; margin-bottom: 10px; }
+            .task-item { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .task-item button { width: 100%; }
+            .cal-cell { min-height: 80px; }
+            .calendar-grid { font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div style="display: flex; align-items: center; gap: 0.8rem;">
+            <button class="icon-btn" onclick="toggleSidebar()">☰</button>
+            <h2 style="margin: 0; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;">Master Recall</h2>
+        </div>
+        
+        <div class="header-actions">
+            <div id="realtimeClock" class="clock">00:00:00</div>
+            
+            <div style="display: flex; gap: 0.2rem; align-items: center; border-right: 1px solid var(--border); padding-right: 0.5rem; margin-left: 0.5rem;">
+                <button class="icon-btn" onclick="changeFontSize(-1)" title="Decrease Font">A-</button>
+                <button class="icon-btn" onclick="changeFontSize(1)" title="Increase Font">A+</button>
+            </div>
+            
+            <button id="forgivenessBtn" onclick="shiftSchedule()">Shift Overdue</button>
+            <button class="icon-btn" onclick="toggleTheme()" title="Toggle Dark Mode">🌓</button>
+        </div>
+    </header>
+
+    <div class="layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <button class="nav-item active-nav" onclick="switchView('dashboard', this)">🏠 Dashboard</button>
+            <button class="nav-item" onclick="switchView('subjectView', this)">📚 Subject Progress</button>
+            <button class="nav-item" onclick="switchView('calendarView', this)">📅 Schedule Calendar</button>
+            <button class="nav-item" onclick="switchView('analyticsView', this)">📊 Exam Analytics</button>
+            <button class="nav-item" onclick="document.getElementById('settingsModal').classList.remove('hidden')">⚙️ Settings</button>
+            
+            <div class="sidebar-bottom">
+                <button onclick="exportData()">⬇️ Backup Data (Export)</button>
+                <label for="importFile" style="background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 0.5rem; border-radius: 8px; text-align: center; cursor: pointer; font-size: 0.85rem;">
+                    ⬆️ Restore Data (Import)
+                </label>
+                <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(event)">
+                <div class="backup-text" id="lastBackupDisplay">Last backed up on: Never</div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- 1. Dashboard View -->
+            <div id="dashboard" class="view-section active card">
+                <div class="dashboard-top">
+                    <div style="flex-grow: 1;">
+                        <h3 style="margin-top: 0;">Add New Topic</h3>
+                        <div class="input-group">
+                            <select id="subjectSelect" style="max-width: 220px;"><option value="">Select Subject...</option></select>
+                            <input type="text" id="topicInput" placeholder="Topic name (e.g., Acid-Base Balance)">
+                            <select id="intervalSelect" style="max-width: 180px;">
+                                <option value="1,3,7,14">1, 3, 7, 14 Days</option>
+                                <!-- Custom interval added dynamically via JS -->
+                            </select>
+                            <button onclick="addTask()">Add to Schedule</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Daily Quote -->
+                    <div id="dailyQuote" class="daily-quote"></div>
+                </div>
+
+                <h3 style="margin-top: 2rem;">Today's Revisions (<span id="todayCount">0</span>)</h3>
+                <div class="task-list" id="taskList"></div>
+            </div>
+
+            <!-- 2. Subject Progress View -->
+            <div id="subjectView" class="view-section card">
+                <h2>Subject-wise Overview</h2>
+                <p style="font-size: 0.9rem; margin-bottom: 1.25rem;">
+                    <span style="color: var(--status-red);">■ Not Revised</span> | 
+                    <span style="color: var(--status-orange);">■ In Progress (R1-R3)</span> | 
+                    <span style="color: var(--status-green);">■ Mastered (R4)</span> |
+                    <span style="color: var(--status-purple);">■ Infinite (R5+)</span>
+                </p>
+                <p style="font-size: 0.8rem; opacity: 0.7; font-style: italic;">Hint: Press and hold a topic badge for 1 second to delete it.</p>
+                <div id="subjectGrid"></div>
+            </div>
+
+            <!-- 3. Calendar View -->
+            <div id="calendarView" class="view-section card">
+                <div class="calendar-header">
+                    <button onclick="changeMonth(-1)">◀ Prev</button>
+                    <h2 id="calendarMonthYear" style="margin: 0; font-size: 1.5rem;"></h2>
+                    <button onclick="changeMonth(1)">Next ▶</button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+
+            <!-- 4. Analytics View -->
+            <div id="analyticsView" class="view-section card">
+                <h2>Exam Phase Analytics</h2>
+                <div class="charts-container">
+                    <div class="chart-box"><canvas id="masteryChart"></canvas></div>
+                    <div class="chart-box"><canvas id="subjectChart"></canvas></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 style="margin-top: 0;">System Settings</h3>
+            <label style="display: block; margin-top: 1rem; font-size: 0.9rem; font-weight: bold;">Custom Default Interval (Days)</label>
+            <input type="text" id="customIntervalSetting" placeholder="e.g., 1,5,10,20" style="width: 100%; margin-top: 0.5rem; padding: 0.8rem;">
+            <p style="font-size: 0.75rem; opacity: 0.7;">This will be saved to your dropdown menu permanently.</p>
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                <button style="background: var(--border); color: var(--text); box-shadow: none;" onclick="document.getElementById('settingsModal').classList.add('hidden')">Cancel</button>
+                <button onclick="saveCustomInterval()">Save Settings</button>
+            </div>
+            
+            <!-- FACTORY RESET SECTION -->
+            <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <h4 style="color: var(--status-red); margin-top: 0; margin-bottom: 0.5rem;">Danger Zone</h4>
+                <p style="font-size: 0.75rem; opacity: 0.7; margin-bottom: 1rem;">Delete all corrupted/old data and start fresh.</p>
+                <button onclick="factoryReset()" style="background: var(--status-red); width: 100%;">Reset All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Service Worker Registration ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW setup skipped locally.'));
+            });
+        }
+
+        // --- Data & State ---
+        const subjects = [
+            "Anatomy", "Physiology", "Biochem", "Pathology", "Pharmacology", 
+            "Microbiology", "ENT", "Ophthalmology", "PSM", "FMT", "Medicine", 
+            "Surgery", "OBG", "Pediatrics", "Skin", "Anaesthesia", "Radiology", 
+            "Psychiatry", "Orthopaedics"
+        ];
+        
+        // 31 Daily Motivational Quotes
+        const quotes = [
+            "Push harder than yesterday if you want a different tomorrow.",
+            "Success is the sum of small efforts repeated daily.",
+            "Don't stop when you're tired. Stop when you're done.",
+            "Your future is created by what you do today, not tomorrow.",
+            "Discipline is choosing between what you want now and what you want most.",
+            "Study while others are sleeping; work while others are loafing.",
+            "The pain you feel today will be the strength you feel tomorrow.",
+            "There are no shortcuts to any place worth going.",
+            "Focus on the step in front of you, not the whole staircase.",
+            "Work hard in silence, let your success be your noise.",
+            "Doubt kills more dreams than failure ever will.",
+            "Dream big, stay positive, work hard, and enjoy the journey.",
+            "The difference between ordinary and extraordinary is that little extra.",
+            "Believe you can and you're halfway there.",
+            "Every pro was once an amateur. Every expert was once a beginner.",
+            "You don't have to be great to start, but you have to start to be great.",
+            "Strive for progress, not perfection.",
+            "A year from now you may wish you had started today.",
+            "It always seems impossible until it is done.",
+            "Don't watch the clock; do what it does. Keep going.",
+            "The secret of getting ahead is getting started.",
+            "Hard work beats talent when talent doesn't work hard.",
+            "Wake up with determination. Go to bed with satisfaction.",
+            "Excuses will always be there for you. Opportunity won't.",
+            "Do something today that your future self will thank you for.",
+            "If it was easy, everyone would do it.",
+            "The only bad workout is the one that didn't happen.",
+            "Little by little, a little becomes a lot.",
+            "Motivation gets you going, but discipline keeps you growing.",
+            "Don't limit your challenges. Challenge your limits.",
+            "Consistency is the ultimate key to mastery."
+        ];
+
+        let tasks = JSON.parse(localStorage.getItem('studyTasks')) || [];
+        
+        // Settings State
+        let savedCustomInterval = localStorage.getItem('focusRecallCustomInterval') || "1,3,7,14";
+        let lastBackup = localStorage.getItem('focusRecallLastBackup') || "Never";
+        
+        document.getElementById('lastBackupDisplay').innerText = `Last backed up on: ${lastBackup}`;
+        document.getElementById('customIntervalSetting').value = savedCustomInterval;
+
+        let currentDate = new Date(); 
+        let masteryChartInst = null;
+        let subjectChartInst = null;
+
+        // Init App Elements
+        const subSelect = document.getElementById('subjectSelect');
+        subjects.forEach(s => subSelect.innerHTML += `<option value="${s}">${s}</option>`);
+
+        // Initialize Custom Interval in Dropdown
+        const intSelect = document.getElementById('intervalSelect');
+        intSelect.innerHTML += `<option value="${savedCustomInterval}">Custom (${savedCustomInterval})</option>`;
+
+        // Clock & Daily Quote Logic
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('realtimeClock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " | " + now.toLocaleDateString([], { day: 'numeric', month: 'short' });
+        }, 1000);
+        
+        // Set quote based on day of month (1-31)
+        document.getElementById('dailyQuote').innerText = `"${quotes[currentDate.getDate() - 1]}"`;
+
+        // Utility: Date Formatting
+        function formatDate(dateObj) {
+            const tzOffset = dateObj.getTimezoneOffset() * 60000;
+            return (new Date(dateObj - tzOffset)).toISOString().split('T')[0];
+        }
+        const todayStr = formatDate(new Date());
+
+        // --- UI & Modals ---
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('closed'); }
+
+        let currentFontSize = parseInt(localStorage.getItem('focusRecallFontSize')) || 16;
+        document.documentElement.style.setProperty('--font-scale', currentFontSize + 'px');
+        function changeFontSize(dir) {
+            currentFontSize = Math.max(12, Math.min(26, currentFontSize + (dir * 2)));
+            document.documentElement.style.setProperty('--font-scale', currentFontSize + 'px');
+            localStorage.setItem('focusRecallFontSize', currentFontSize);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            if(document.getElementById('analyticsView').classList.contains('active')) renderAnalytics(); 
+        }
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+        function switchView(viewId, btnElement) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
+            if(btnElement) btnElement.classList.add('active-nav');
+            
+            if(viewId === 'dashboard') renderDashboard();
+            if(viewId === 'subjectView') renderSubjectView();
+            if(viewId === 'calendarView') renderCalendar();
+            if(viewId === 'analyticsView') renderAnalytics();
+            
+            if (window.innerWidth < 768) toggleSidebar();
+        }
+
+        function saveCustomInterval() {
+            const val = document.getElementById('customIntervalSetting').value.trim();
+            if(val) {
+                localStorage.setItem('focusRecallCustomInterval', val);
+                savedCustomInterval = val;
+                intSelect.options[1].value = val;
+                intSelect.options[1].text = `Custom (${val})`;
+                intSelect.value = val;
+                document.getElementById('settingsModal').classList.add('hidden');
+            }
+        }
+
+        // Factory Reset
+        function factoryReset() {
+            if(confirm("WARNING: This will permanently wipe ALL your data from this device to start fresh. Proceed?")) {
+                localStorage.removeItem('studyTasks');
+                localStorage.removeItem('focusRecallCustomInterval');
+                localStorage.removeItem('focusRecallLastBackup');
+                alert("Data cleared successfully. The app will now reload.");
+                location.reload();
+            }
+        }
+
+        // --- Core Spaced Repetition Logic (INFINITE LOOP 15 DAYS) ---
+        function addTask() {
+            const sub = subSelect.value;
+            const top = document.getElementById('topicInput').value;
+            const selectVal = intSelect.value;
+            
+            const intervals = selectVal.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+            if (!sub || !top || intervals.length === 0) return alert("Please fill all fields.");
+
+            let schedule = [];
+            let refDate = new Date();
+            for(let i=0; i < intervals.length; i++) {
+                refDate.setDate(refDate.getDate() + intervals[i]);
+                schedule.push(formatDate(refDate));
+            }
+
+            tasks.push({ 
+                id: Date.now(), subject: sub, topic: top, status: 0, 
+                intervals: intervals, schedule: schedule, completed: false 
+            });
+            
+            saveAndRefresh();
+            document.getElementById('topicInput').value = '';
+            subSelect.selectedIndex = 0;
+            document.getElementById('topicInput').focus();
+        }
+
+        function completeTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if(!task) return;
+
+            task.status++;
+
+            if (task.status < task.intervals.length) {
+                // Standard recalculation for R1-R4 based on today
+                let refDate = new Date(); 
+                for(let i = task.status; i < task.schedule.length; i++) {
+                    refDate.setDate(refDate.getDate() + task.intervals[i]);
+                    task.schedule[i] = formatDate(refDate);
+                }
+            } else {
+                // INFINITE RESCHEDULING (R5+) every 15 days for NEET PG
+                let refDate = new Date();
+                refDate.setDate(refDate.getDate() + 15); 
+                
+                if(task.schedule.length <= task.status) {
+                    task.schedule.push(formatDate(refDate));
+                } else {
+                    task.schedule[task.status] = formatDate(refDate);
+                }
+            }
+            saveAndRefresh();
+        }
+
+        function shiftSchedule() {
+            let shifted = 0;
+            const todayFormatted = formatDate(new Date());
+            
+            tasks.forEach(task => {
+                if (task.schedule && Array.isArray(task.schedule) && task.schedule[task.status] < todayFormatted) {
+                    shifted++;
+                    let refDate = new Date();
+                    task.schedule[task.status] = todayFormatted;
+                    
+                    for(let i = task.status + 1; i < task.intervals.length; i++) {
+                        refDate.setDate(refDate.getDate() + task.intervals[i]);
+                        task.schedule[i] = formatDate(refDate);
+                    }
+                }
+            });
+
+            if(shifted > 0) {
+                saveAndRefresh();
+                alert(`Forwarded ${shifted} overdue topics to today.`);
+            } else alert("You are perfectly on schedule!");
+        }
+
+        // --- Press and Hold to Delete Logic ---
+        let pressTimer;
+        
+        function startPress(id) {
+            pressTimer = window.setTimeout(() => {
+                triggerDelete(id);
+            }, 1000); // 1 second hold
+        }
+        
+        function cancelPress() {
+            clearTimeout(pressTimer);
+        }
+
+        function triggerDelete(id) {
+            const task = tasks.find(t => t.id === id);
+            if(!task) return;
+            
+            if(confirm(`Do you want to delete topic: "${task.topic}"?`)) {
+                if(confirm("WARNING: This will permanently remove it from your schedule. Are you absolutely sure?")) {
+                    tasks = tasks.filter(t => t.id !== id);
+                    saveAndRefresh();
+                }
+            }
+        }
+
+        // --- Data Import / Export ---
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tasks));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `MasterRecall_PG_Backup_${formatDate(new Date())}.json`);
+            document.body.appendChild(downloadAnchorNode); 
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            
+            const nowTime = new Date().toLocaleString([], {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
+            localStorage.setItem('focusRecallLastBackup', nowTime);
+            document.getElementById('lastBackupDisplay').innerText = `Last backed up on: ${nowTime}`;
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedTasks = JSON.parse(e.target.result);
+                    if(Array.isArray(importedTasks)) {
+                        tasks = importedTasks;
+                        saveAndRefresh();
+                        alert("Data successfully restored!");
+                    }
+                } catch (err) { alert("Invalid backup file."); }
+            };
+            reader.readAsText(file);
+        }
+
+        function saveAndRefresh() {
+            localStorage.setItem('studyTasks', JSON.stringify(tasks));
+            renderDashboard();
+            if(document.getElementById('subjectView').classList.contains('active')) renderSubjectView();
+            if(document.getElementById('calendarView').classList.contains('active')) renderCalendar();
+            if(document.getElementById('analyticsView').classList.contains('active')) renderAnalytics();
+        }
+
+        function getStatusColor(statusIndex) {
+            if (statusIndex === 0) return 'var(--status-red)';       
+            if (statusIndex === 1 || statusIndex === 2) return 'var(--status-orange)';    
+            if (statusIndex === 3) return 'var(--status-green)';
+            return 'var(--status-purple)';                            
+        }
+
+        // --- Renderers ---
+        function renderDashboard() {
+            const list = document.getElementById('taskList');
+            // Bulletproof data check prevents crashes from corrupted local storage
+            const activeTasks = tasks.filter(t => t.schedule && Array.isArray(t.schedule) && t.schedule[t.status] <= todayStr);
+            document.getElementById('todayCount').innerText = activeTasks.length;
+
+            if (activeTasks.length === 0) {
+                list.innerHTML = `<p style="text-align:center; opacity:0.6; font-style: italic;">All caught up! Check the calendar for upcoming topics.</p>`;
+                return;
+            }
+
+            list.innerHTML = activeTasks.map(t => `
+                <div class="task-item" style="border-left-color: ${getStatusColor(t.status)}">
+                    <div>
+                        <div style="font-size: 0.8rem; opacity: 0.7; font-weight: bold; text-transform: uppercase;">${t.subject}</div>
+                        <strong style="font-size: 1.1rem;">${t.topic}</strong> 
+                        <span class="task-badge">R${t.status + 1}</span>
+                        <span class="task-badge" style="background: ${t.schedule[t.status] < todayStr ? 'var(--status-red)' : 'var(--bg)'}; color: ${t.schedule[t.status] < todayStr ? '#fff' : 'inherit'}">${t.schedule[t.status] < todayStr ? 'Overdue' : 'Due Today'}</span>
+                    </div>
+                    <button onclick="completeTask(${t.id})">Mark R${t.status + 1} Done</button>
+                </div>
+            `).join('');
+        }
+
+        function renderSubjectView() {
+            const grid = document.getElementById('subjectGrid');
+            grid.innerHTML = '';
+            subjects.forEach(sub => {
+                const subTasks = tasks.filter(t => t.subject === sub);
+                if (subTasks.length === 0) return;
+                grid.innerHTML += `
+                    <div class="subject-group">
+                        <h3>${sub}</h3>
+                        <div class="topic-badges">
+                            ${subTasks.map(t => `
+                                <div class="topic-badge" style="background-color: ${getStatusColor(t.status)}" title="Current Phase: R${t.status+1}"
+                                onmousedown="startPress(${t.id})" onmouseup="cancelPress()" onmouseleave="cancelPress()" 
+                                ontouchstart="startPress(${t.id})" ontouchend="cancelPress()" oncontextmenu="return false;">
+                                    ${t.topic}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- CALENDAR LOGIC ---
+        function changeMonth(dir) { 
+            currentDate.setMonth(currentDate.getMonth() + dir); 
+            renderCalendar(); 
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const monthYearLabel = document.getElementById('calendarMonthYear');
+            
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            monthYearLabel.innerText = `${monthNames[month]} ${year}`;
+
+            let html = `
+                <div class="cal-day-header">Sun</div><div class="cal-day-header">Mon</div>
+                <div class="cal-day-header">Tue</div><div class="cal-day-header">Wed</div>
+                <div class="cal-day-header">Thu</div><div class="cal-day-header">Fri</div>
+                <div class="cal-day-header">Sat</div>
+            `;
+
+            for(let i = 0; i < firstDay; i++) {
+                html += `<div class="cal-cell" style="background: transparent; border: none;"></div>`;
+            }
+
+            for(let day = 1; day <= daysInMonth; day++) {
+                const dateStr = formatDate(new Date(year, month, day));
+                const isToday = dateStr === todayStr ? 'today' : '';
+                
+                // Bulletproof filter to avoid old data crashing calendar
+                const dayTasks = tasks.filter(t => t.schedule && Array.isArray(t.schedule) && t.schedule.includes(dateStr));
+                
+                let tasksHtml = dayTasks.map(t => {
+                    const revIndex = t.schedule.lastIndexOf(dateStr);
+                    const isCompleted = t.status > revIndex;
+                    
+                    return `<div class="cal-task" style="border-left-color: ${getStatusColor(revIndex)}; ${isCompleted ? 'text-decoration: line-through; opacity: 0.4;' : ''}" title="${t.subject}: ${t.topic}">
+                        <strong>R${revIndex + 1}</strong> - ${t.subject.substring(0,4)}: ${t.topic}
+                    </div>`;
+                }).join('');
+
+                html += `
+                    <div class="cal-cell ${isToday}">
+                        <div class="cal-date">${day}</div>
+                        ${tasksHtml}
+                    </div>
+                `;
+            }
+            grid.innerHTML = html;
+        }
+
+        function renderAnalytics() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const textColor = isDark ? '#e0e0e0' : '#2C332A';
+            const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+
+            let notRevised = tasks.filter(t => t.status === 0).length;
+            let inProgress = tasks.filter(t => t.status > 0 && t.status < 3).length;
+            let mastered = tasks.filter(t => t.status >= 3).length; 
+            
+            let subLabels = [], subData = [];
+            subjects.forEach(sub => {
+                const subT = tasks.filter(t => t.subject === sub);
+                if(subT.length > 0) {
+                    // Shorten labels for chart
+                    subLabels.push(sub.substring(0,4));
+                    const totalSt = subT.reduce((sum, t) => sum + (t.status > 4 ? 4 : t.status), 0); 
+                    subData.push((totalSt / subT.length).toFixed(1));
+                }
+            });
+
+            const ctx1 = document.getElementById('masteryChart').getContext('2d');
+            if(masteryChartInst) masteryChartInst.destroy();
+            masteryChartInst = new Chart(ctx1, {
+                type: 'doughnut',
+                data: { labels: ['Not Revised (R1)', 'In Progress (R2-R3)', 'Mastered (R4+)'], datasets: [{ data: [notRevised, inProgress, mastered], backgroundColor: ['#E06C6C', '#E6A854', '#59A88C'], borderWidth: 0 }] },
+                options: { plugins: { legend: { labels: { color: textColor } }, title: { display: true, text: 'Overall Syllabus Mastery', color: textColor } }, cutout: '70%' }
+            });
+
+            const ctx2 = document.getElementById('subjectChart').getContext('2d');
+            if(subjectChartInst) subjectChartInst.destroy();
+            subjectChartInst = new Chart(ctx2, {
+                type: 'bar',
+                data: { labels: subLabels, datasets: [{ label: 'Avg Phase Progression', data: subData, backgroundColor: '#4A695C', borderRadius: 4 }] },
+                options: { scales: { y: { beginAtZero: true, max: 4, ticks: { color: textColor }, grid: { color: gridColor } }, x: { ticks: { color: textColor, maxRotation: 45, minRotation: 45 }, grid: { display: false } } }, plugins: { legend: { display: false }, title: { display: true, text: 'Subject Depth (Cap R4)', color: textColor } } }
+            });
+        }
+
+        renderDashboard();
+    </script>
+</body>
+</html>
