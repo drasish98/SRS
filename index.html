@@ -5,28 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Master Recall | NEET PG Edition</title>
     <link rel="manifest" href="manifest.json">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Recall PG">
+    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Caduceus.svg/512px-Caduceus.svg.png">
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* --- Themes --- */
         :root { 
-            /* Light Olive Green Mode for NEET PG */
             --bg: #EAECE2; 
             --surface: #F4F5F0; 
             --text: #2C332A; 
             --accent: #5C715E; 
             --border: #D1D6CB; 
             --shadow: rgba(0, 0, 0, 0.05);
-            
-            /* Status Colors */
             --status-red: #E06C6C;
             --status-orange: #E6A854;
             --status-green: #59A88C;
-            --status-purple: #8B78E6; /* For R5+ */
-
+            --status-purple: #8B78E6; 
             --font-scale: 16px;
         }
 
-        /* AMOLED Pitch Black Dark Mode */
         [data-theme="dark"] {
             --bg: #000000;
             --surface: #121212;
@@ -37,12 +38,9 @@
         }
 
         html { font-size: var(--font-scale); transition: font-size 0.2s ease; }
-        
         * { box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; transition: background 0.3s, color 0.3s, border-color 0.3s; }
-        
         body { margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; }
 
-        /* --- Header --- */
         header {
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(var(--surface), 0.8); backdrop-filter: blur(10px); padding: 1rem 1.25rem;
@@ -58,7 +56,6 @@
         .icon-btn { background: transparent; color: var(--text); font-size: 1.2rem; padding: 0.3rem; cursor: pointer; font-weight: bold; box-shadow: none; }
         #forgivenessBtn { background: var(--border); color: var(--text); padding: 0.5rem 0.8rem; font-size: 0.85rem; }
 
-        /* --- Layout & Sidebar --- */
         .layout { display: flex; height: calc(100vh - 75px); }
         .sidebar {
             width: 260px; background: var(--surface); border-right: 1px solid var(--border);
@@ -68,17 +65,13 @@
         }
         .sidebar.closed { transform: translateX(-100%); position: absolute; height: 100%; }
         
-        .nav-item {
-            padding: 0.8rem 1rem; border-radius: 8px; cursor: pointer; border: 1px solid transparent; text-align: left; background: transparent; color: var(--text); font-weight: 500; font-size: 1rem; transition: 0.2s; box-shadow: none;
-        }
+        .nav-item { padding: 0.8rem 1rem; border-radius: 8px; cursor: pointer; border: 1px solid transparent; text-align: left; background: transparent; color: var(--text); font-weight: 500; font-size: 1rem; transition: 0.2s; }
         .nav-item:hover { background: var(--bg); }
         .nav-item.active-nav { background: var(--accent); color: #fff; }
-
         .sidebar-bottom { margin-top: auto; border-top: 1px dashed var(--border); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
         .sidebar-bottom button { background: var(--bg); color: var(--text); border: 1px solid var(--border); box-shadow: none; padding: 0.5rem; font-size: 0.85rem;}
         .backup-text { font-size: 0.75rem; color: var(--text); opacity: 0.6; text-align: center; }
 
-        /* --- Main Content --- */
         .main-content { flex-grow: 1; padding: 1.5rem; overflow-y: auto; position: relative; }
         .view-section { display: none; }
         .view-section.active { display: block; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -86,14 +79,9 @@
         
         .card { background: var(--surface); padding: 1.5rem; border-radius: 16px; box-shadow: 0 8px 24px var(--shadow); margin-bottom: 1.5rem; border: 1px solid var(--border); }
 
-        /* --- Dashboard Top & Daily Quote --- */
         .dashboard-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
-        .daily-quote { 
-            font-size: 1.25rem; font-weight: 800; font-style: italic; color: var(--accent); 
-            text-align: right; max-width: 350px; line-height: 1.3; opacity: 0.9;
-        }
+        .daily-quote { font-size: 1.25rem; font-weight: 800; font-style: italic; color: var(--accent); text-align: right; max-width: 350px; line-height: 1.3; opacity: 0.9; }
 
-        /* --- Inputs & Lists --- */
         .input-group { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
         select, input { padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); flex-grow: 1; font-size: 1rem; transition: 0.2s; outline: none; }
         select:focus, input:focus { border-color: var(--accent); }
@@ -103,40 +91,21 @@
         .task-item:hover { transform: translateX(5px); }
         .task-badge { background: var(--bg); border: 1px solid var(--border); padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem; margin-left: 0.5rem; font-weight: bold;}
 
-        /* --- Modals & Utilities --- */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(5px); }
         .modal-content { background: var(--surface); padding: 2rem; border-radius: 16px; width: 90%; max-width: 400px; border: 1px solid var(--border); }
         .hidden { display: none !important; }
 
-        /* --- Subject View --- */
-        .topic-badge { 
-            padding: 0.6rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 500; 
-            color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); 
-            display: inline-block; cursor: pointer;
-            user-select: none; -webkit-user-select: none; /* Prevents text selection on long press */
-            transition: transform 0.1s;
-        }
+        .topic-badge { padding: 0.6rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 500; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); display: inline-block; cursor: pointer; user-select: none; -webkit-user-select: none; transition: transform 0.1s; }
         .topic-badge:active { transform: scale(0.95); }
 
-        /* --- Calendar CSS (GOOGLE CALENDAR STYLE) --- */
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
         .cal-day-header { text-align: center; font-weight: bold; padding: 10px 0; color: var(--text); }
-        
-        .cal-cell { 
-            background: var(--bg); border: 1px solid var(--border); min-height: 120px; 
-            padding: 5px; border-radius: 6px; display: flex; flex-direction: column; overflow-y: auto; 
-        }
-        
+        .cal-cell { background: var(--bg); border: 1px solid var(--border); min-height: 120px; padding: 5px; border-radius: 6px; display: flex; flex-direction: column; overflow-y: auto; }
         .cal-date { font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; opacity: 0.7; }
         .cal-cell.today { border: 2px solid var(--accent); background: var(--surface); }
-        
-        .cal-task { 
-            font-size: 0.75rem; background: var(--surface); margin-bottom: 3px; padding: 4px; 
-            border-radius: 4px; border-left: 3px solid; line-height: 1.2; word-break: break-word;
-        }
+        .cal-task { font-size: 0.75rem; background: var(--surface); margin-bottom: 3px; padding: 4px; border-radius: 4px; border-left: 3px solid; line-height: 1.2; word-break: break-word; }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .header-actions { justify-content: flex-end; width: 100%; margin-top: 0.5rem; }
             .clock { font-size: 0.9rem; }
@@ -150,29 +119,23 @@
     </style>
 </head>
 <body>
-
-    <!-- Header -->
     <header>
         <div style="display: flex; align-items: center; gap: 0.8rem;">
             <button class="icon-btn" onclick="toggleSidebar()">☰</button>
             <h2 style="margin: 0; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;">Master Recall</h2>
         </div>
-        
         <div class="header-actions">
             <div id="realtimeClock" class="clock">00:00:00</div>
-            
             <div style="display: flex; gap: 0.2rem; align-items: center; border-right: 1px solid var(--border); padding-right: 0.5rem; margin-left: 0.5rem;">
-                <button class="icon-btn" onclick="changeFontSize(-1)" title="Decrease Font">A-</button>
-                <button class="icon-btn" onclick="changeFontSize(1)" title="Increase Font">A+</button>
+                <button class="icon-btn" onclick="changeFontSize(-1)">A-</button>
+                <button class="icon-btn" onclick="changeFontSize(1)">A+</button>
             </div>
-            
             <button id="forgivenessBtn" onclick="shiftSchedule()">Shift Overdue</button>
-            <button class="icon-btn" onclick="toggleTheme()" title="Toggle Dark Mode">🌓</button>
+            <button class="icon-btn" onclick="toggleTheme()">🌓</button>
         </div>
     </header>
 
     <div class="layout">
-        <!-- Sidebar Navigation -->
         <aside class="sidebar" id="sidebar">
             <button class="nav-item active-nav" onclick="switchView('dashboard', this)">🏠 Dashboard</button>
             <button class="nav-item" onclick="switchView('subjectView', this)">📚 Subject Progress</button>
@@ -181,19 +144,14 @@
             <button class="nav-item" onclick="document.getElementById('settingsModal').classList.remove('hidden')">⚙️ Settings</button>
             
             <div class="sidebar-bottom">
-                <button onclick="exportData()">⬇️ Backup Data (Export)</button>
-                <label for="importFile" style="background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 0.5rem; border-radius: 8px; text-align: center; cursor: pointer; font-size: 0.85rem;">
-                    ⬆️ Restore Data (Import)
-                </label>
+                <button onclick="triggerSecureExport()">⬇️ Backup Data</button>
+                <label for="importFile" style="background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 0.5rem; border-radius: 8px; text-align: center; cursor: pointer; font-size: 0.85rem;">⬆️ Restore Data</label>
                 <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(event)">
                 <div class="backup-text" id="lastBackupDisplay">Last backed up on: Never</div>
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
-            
-            <!-- 1. Dashboard View -->
             <div id="dashboard" class="view-section active card">
                 <div class="dashboard-top">
                     <div style="flex-grow: 1;">
@@ -203,21 +161,16 @@
                             <input type="text" id="topicInput" placeholder="Topic name (e.g., Acid-Base Balance)">
                             <select id="intervalSelect" style="max-width: 180px;">
                                 <option value="1,3,7,14">1, 3, 7, 14 Days</option>
-                                <!-- Custom interval added dynamically via JS -->
                             </select>
                             <button onclick="addTask()">Add to Schedule</button>
                         </div>
                     </div>
-                    
-                    <!-- Daily Quote -->
                     <div id="dailyQuote" class="daily-quote"></div>
                 </div>
-
                 <h3 style="margin-top: 2rem;">Today's Revisions (<span id="todayCount">0</span>)</h3>
                 <div class="task-list" id="taskList"></div>
             </div>
 
-            <!-- 2. Subject Progress View -->
             <div id="subjectView" class="view-section card">
                 <h2>Subject-wise Overview</h2>
                 <p style="font-size: 0.9rem; margin-bottom: 1.25rem;">
@@ -230,7 +183,6 @@
                 <div id="subjectGrid"></div>
             </div>
 
-            <!-- 3. Calendar View -->
             <div id="calendarView" class="view-section card">
                 <div class="calendar-header">
                     <button onclick="changeMonth(-1)">◀ Prev</button>
@@ -240,7 +192,6 @@
                 <div class="calendar-grid" id="calendarGrid"></div>
             </div>
 
-            <!-- 4. Analytics View -->
             <div id="analyticsView" class="view-section card">
                 <h2>Exam Phase Analytics</h2>
                 <div class="charts-container">
@@ -251,19 +202,17 @@
         </main>
     </div>
 
-    <!-- Settings Modal -->
     <div id="settingsModal" class="modal hidden">
         <div class="modal-content">
             <h3 style="margin-top: 0;">System Settings</h3>
             <label style="display: block; margin-top: 1rem; font-size: 0.9rem; font-weight: bold;">Custom Default Interval (Days)</label>
             <input type="text" id="customIntervalSetting" placeholder="e.g., 1,5,10,20" style="width: 100%; margin-top: 0.5rem; padding: 0.8rem;">
-            <p style="font-size: 0.75rem; opacity: 0.7;">This will be saved to your dropdown menu permanently.</p>
+            <p style="font-size: 0.75rem; opacity: 0.7;">Saved to your dropdown menu permanently.</p>
             <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
                 <button style="background: var(--border); color: var(--text); box-shadow: none;" onclick="document.getElementById('settingsModal').classList.add('hidden')">Cancel</button>
                 <button onclick="saveCustomInterval()">Save Settings</button>
             </div>
             
-            <!-- FACTORY RESET SECTION -->
             <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border);">
                 <h4 style="color: var(--status-red); margin-top: 0; margin-bottom: 0.5rem;">Danger Zone</h4>
                 <p style="font-size: 0.75rem; opacity: 0.7; margin-bottom: 1rem;">Delete all corrupted/old data and start fresh.</p>
@@ -273,14 +222,10 @@
     </div>
 
     <script>
-        // --- Service Worker Registration ---
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW setup skipped locally.'));
-            });
+            window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Setup Skipped')); });
         }
 
-        // --- Data & State ---
         const subjects = [
             "Anatomy", "Physiology", "Biochem", "Pathology", "Pharmacology", 
             "Microbiology", "ENT", "Ophthalmology", "PSM", "FMT", "Medicine", 
@@ -288,7 +233,6 @@
             "Psychiatry", "Orthopaedics"
         ];
         
-        // 31 Daily Motivational Quotes
         const quotes = [
             "Push harder than yesterday if you want a different tomorrow.",
             "Success is the sum of small efforts repeated daily.",
@@ -324,8 +268,6 @@
         ];
 
         let tasks = JSON.parse(localStorage.getItem('studyTasks')) || [];
-        
-        // Settings State
         let savedCustomInterval = localStorage.getItem('focusRecallCustomInterval') || "1,3,7,14";
         let lastBackup = localStorage.getItem('focusRecallLastBackup') || "Never";
         
@@ -336,31 +278,25 @@
         let masteryChartInst = null;
         let subjectChartInst = null;
 
-        // Init App Elements
         const subSelect = document.getElementById('subjectSelect');
         subjects.forEach(s => subSelect.innerHTML += `<option value="${s}">${s}</option>`);
 
-        // Initialize Custom Interval in Dropdown
         const intSelect = document.getElementById('intervalSelect');
         intSelect.innerHTML += `<option value="${savedCustomInterval}">Custom (${savedCustomInterval})</option>`;
 
-        // Clock & Daily Quote Logic
         setInterval(() => {
             const now = new Date();
             document.getElementById('realtimeClock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " | " + now.toLocaleDateString([], { day: 'numeric', month: 'short' });
         }, 1000);
         
-        // Set quote based on day of month (1-31)
         document.getElementById('dailyQuote').innerText = `"${quotes[currentDate.getDate() - 1]}"`;
 
-        // Utility: Date Formatting
         function formatDate(dateObj) {
             const tzOffset = dateObj.getTimezoneOffset() * 60000;
             return (new Date(dateObj - tzOffset)).toISOString().split('T')[0];
         }
         const todayStr = formatDate(new Date());
 
-        // --- UI & Modals ---
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('closed'); }
 
         let currentFontSize = parseInt(localStorage.getItem('focusRecallFontSize')) || 16;
@@ -383,15 +319,12 @@
         function switchView(viewId, btnElement) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
-            
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
             if(btnElement) btnElement.classList.add('active-nav');
-            
             if(viewId === 'dashboard') renderDashboard();
             if(viewId === 'subjectView') renderSubjectView();
             if(viewId === 'calendarView') renderCalendar();
             if(viewId === 'analyticsView') renderAnalytics();
-            
             if (window.innerWidth < 768) toggleSidebar();
         }
 
@@ -407,18 +340,14 @@
             }
         }
 
-        // Factory Reset
         function factoryReset() {
             if(confirm("WARNING: This will permanently wipe ALL your data from this device to start fresh. Proceed?")) {
-                localStorage.removeItem('studyTasks');
-                localStorage.removeItem('focusRecallCustomInterval');
-                localStorage.removeItem('focusRecallLastBackup');
+                localStorage.clear();
                 alert("Data cleared successfully. The app will now reload.");
                 location.reload();
             }
         }
 
-        // --- Core Spaced Repetition Logic (INFINITE LOOP 15 DAYS) ---
         function addTask() {
             const sub = subSelect.value;
             const top = document.getElementById('topicInput').value;
@@ -434,11 +363,7 @@
                 schedule.push(formatDate(refDate));
             }
 
-            tasks.push({ 
-                id: Date.now(), subject: sub, topic: top, status: 0, 
-                intervals: intervals, schedule: schedule, completed: false 
-            });
-            
+            tasks.push({ id: Date.now(), subject: sub, topic: top, status: 0, intervals: intervals, schedule: schedule, completed: false });
             saveAndRefresh();
             document.getElementById('topicInput').value = '';
             subSelect.selectedIndex = 0;
@@ -450,24 +375,17 @@
             if(!task) return;
 
             task.status++;
-
             if (task.status < task.intervals.length) {
-                // Standard recalculation for R1-R4 based on today
                 let refDate = new Date(); 
                 for(let i = task.status; i < task.schedule.length; i++) {
                     refDate.setDate(refDate.getDate() + task.intervals[i]);
                     task.schedule[i] = formatDate(refDate);
                 }
             } else {
-                // INFINITE RESCHEDULING (R5+) every 15 days for NEET PG
                 let refDate = new Date();
-                refDate.setDate(refDate.getDate() + 15); 
-                
-                if(task.schedule.length <= task.status) {
-                    task.schedule.push(formatDate(refDate));
-                } else {
-                    task.schedule[task.status] = formatDate(refDate);
-                }
+                refDate.setDate(refDate.getDate() + 15); // 15-DAY INFINITE LOOP PG
+                if(task.schedule.length <= task.status) task.schedule.push(formatDate(refDate));
+                else task.schedule[task.status] = formatDate(refDate);
             }
             saveAndRefresh();
         }
@@ -495,23 +413,12 @@
             } else alert("You are perfectly on schedule!");
         }
 
-        // --- Press and Hold to Delete Logic ---
         let pressTimer;
-        
-        function startPress(id) {
-            pressTimer = window.setTimeout(() => {
-                triggerDelete(id);
-            }, 1000); // 1 second hold
-        }
-        
-        function cancelPress() {
-            clearTimeout(pressTimer);
-        }
-
+        function startPress(id) { pressTimer = window.setTimeout(() => { triggerDelete(id); }, 1000); }
+        function cancelPress() { clearTimeout(pressTimer); }
         function triggerDelete(id) {
             const task = tasks.find(t => t.id === id);
             if(!task) return;
-            
             if(confirm(`Do you want to delete topic: "${task.topic}"?`)) {
                 if(confirm("WARNING: This will permanently remove it from your schedule. Are you absolutely sure?")) {
                     tasks = tasks.filter(t => t.id !== id);
@@ -520,7 +427,67 @@
             }
         }
 
-        // --- Data Import / Export ---
+        // --- BACKUP 5-DAY AUTOMATED WARNING MODULE ---
+        function checkBackupReminder() {
+            let lastBackupStr = localStorage.getItem('focusRecallLastBackup');
+            const today = new Date();
+
+            if (!lastBackupStr || lastBackupStr === "Never") {
+                const nowTime = today.toLocaleString([], {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
+                localStorage.setItem('focusRecallLastBackup', nowTime);
+                localStorage.setItem('focusRecallBackupTimestamp', Date.now());
+                return;
+            }
+
+            let lastBackupTimestamp = localStorage.getItem('focusRecallBackupTimestamp') || Date.now();
+            let msPassed = today.getTime() - lastBackupTimestamp;
+            let daysPassed = msPassed / (1000 * 60 * 60 * 24);
+
+            if (daysPassed >= 5) {
+                showBackupBanner(Math.floor(daysPassed));
+            }
+        }
+
+        function showBackupBanner(days) {
+            if (document.getElementById('backupReminderBanner')) return;
+
+            const banner = document.createElement('div');
+            banner.id = 'backupReminderBanner';
+            banner.style.cssText = `
+                background: var(--status-orange);
+                color: #000;
+                padding: 0.8rem;
+                text-align: center;
+                font-weight: bold;
+                font-size: 0.95rem;
+                border-radius: 8px;
+                margin-bottom: 1rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0 4px 12px var(--shadow);
+            `;
+            banner.innerHTML = `
+                <span>⚠️ Secure Your Progress: It has been ${days} days since your last backup!</span>
+                <button onclick="triggerSecureExport()" style="background: #000; color: #fff; font-size: 0.8rem; padding: 0.4rem 0.8rem; border-radius:4px;">Backup Now</button>
+            `;
+            
+            const dashboard = document.getElementById('dashboard');
+            dashboard.insertBefore(banner, dashboard.firstChild);
+        }
+
+        function triggerSecureExport() {
+            const banner = document.getElementById('backupReminderBanner');
+            if (banner) banner.remove();
+            
+            exportData();
+            
+            const nowTime = new Date().toLocaleString([], {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
+            localStorage.setItem('focusRecallLastBackup', nowTime);
+            localStorage.setItem('focusRecallBackupTimestamp', Date.now());
+            document.getElementById('lastBackupDisplay').innerText = `Last backed up on: ${nowTime}`;
+        }
+
         function exportData() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tasks));
             const downloadAnchorNode = document.createElement('a');
@@ -532,6 +499,7 @@
             
             const nowTime = new Date().toLocaleString([], {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
             localStorage.setItem('focusRecallLastBackup', nowTime);
+            localStorage.setItem('focusRecallBackupTimestamp', Date.now());
             document.getElementById('lastBackupDisplay').innerText = `Last backed up on: ${nowTime}`;
         }
 
@@ -567,10 +535,8 @@
             return 'var(--status-purple)';                            
         }
 
-        // --- Renderers ---
         function renderDashboard() {
             const list = document.getElementById('taskList');
-            // Bulletproof data check prevents crashes from corrupted local storage
             const activeTasks = tasks.filter(t => t.schedule && Array.isArray(t.schedule) && t.schedule[t.status] <= todayStr);
             document.getElementById('todayCount').innerText = activeTasks.length;
 
@@ -615,22 +581,15 @@
             });
         }
 
-        // --- CALENDAR LOGIC ---
-        function changeMonth(dir) { 
-            currentDate.setMonth(currentDate.getMonth() + dir); 
-            renderCalendar(); 
-        }
+        function changeMonth(dir) { currentDate.setMonth(currentDate.getMonth() + dir); renderCalendar(); }
 
         function renderCalendar() {
             const grid = document.getElementById('calendarGrid');
             const monthYearLabel = document.getElementById('calendarMonthYear');
-            
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-            
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             monthYearLabel.innerText = `${monthNames[month]} ${year}`;
 
@@ -640,33 +599,22 @@
                 <div class="cal-day-header">Thu</div><div class="cal-day-header">Fri</div>
                 <div class="cal-day-header">Sat</div>
             `;
-
-            for(let i = 0; i < firstDay; i++) {
-                html += `<div class="cal-cell" style="background: transparent; border: none;"></div>`;
-            }
+            for(let i = 0; i < firstDay; i++) html += `<div class="cal-cell" style="background: transparent; border: none;"></div>`;
 
             for(let day = 1; day <= daysInMonth; day++) {
                 const dateStr = formatDate(new Date(year, month, day));
                 const isToday = dateStr === todayStr ? 'today' : '';
-                
-                // Bulletproof filter to avoid old data crashing calendar
                 const dayTasks = tasks.filter(t => t.schedule && Array.isArray(t.schedule) && t.schedule.includes(dateStr));
                 
                 let tasksHtml = dayTasks.map(t => {
                     const revIndex = t.schedule.lastIndexOf(dateStr);
                     const isCompleted = t.status > revIndex;
-                    
                     return `<div class="cal-task" style="border-left-color: ${getStatusColor(revIndex)}; ${isCompleted ? 'text-decoration: line-through; opacity: 0.4;' : ''}" title="${t.subject}: ${t.topic}">
                         <strong>R${revIndex + 1}</strong> - ${t.subject.substring(0,4)}: ${t.topic}
                     </div>`;
                 }).join('');
 
-                html += `
-                    <div class="cal-cell ${isToday}">
-                        <div class="cal-date">${day}</div>
-                        ${tasksHtml}
-                    </div>
-                `;
+                html += `<div class="cal-cell ${isToday}"><div class="cal-date">${day}</div>${tasksHtml}</div>`;
             }
             grid.innerHTML = html;
         }
@@ -684,7 +632,6 @@
             subjects.forEach(sub => {
                 const subT = tasks.filter(t => t.subject === sub);
                 if(subT.length > 0) {
-                    // Shorten labels for chart
                     subLabels.push(sub.substring(0,4));
                     const totalSt = subT.reduce((sum, t) => sum + (t.status > 4 ? 4 : t.status), 0); 
                     subData.push((totalSt / subT.length).toFixed(1));
@@ -703,12 +650,13 @@
             if(subjectChartInst) subjectChartInst.destroy();
             subjectChartInst = new Chart(ctx2, {
                 type: 'bar',
-                data: { labels: subLabels, datasets: [{ label: 'Avg Phase Progression', data: subData, backgroundColor: '#4A695C', borderRadius: 4 }] },
+                data: { labels: subLabels, datasets: [{ label: 'Avg Phase Progression', data: subData, backgroundColor: '#5C715E', borderRadius: 4 }] },
                 options: { scales: { y: { beginAtZero: true, max: 4, ticks: { color: textColor }, grid: { color: gridColor } }, x: { ticks: { color: textColor, maxRotation: 45, minRotation: 45 }, grid: { display: false } } }, plugins: { legend: { display: false }, title: { display: true, text: 'Subject Depth (Cap R4)', color: textColor } } }
             });
         }
 
         renderDashboard();
+        checkBackupReminder();
     </script>
 </body>
 </html>
