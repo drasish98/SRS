@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Master Recall | NEET PG Edition</title>
-    <link rel="manifest" href="manifest.json">
+    
+    <!-- Embedded Manifest to force Android Chrome to bypass cache and validate PWA -->
+    <link rel="manifest" href='data:application/json,{"name":"Master Recall NEET PG","short_name":"Recall PG","start_url":".","display":"standalone","background_color":"#000000","theme_color":"#5C715E","orientation":"portrait","icons":[{"src":"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Caduceus.svg/512px-Caduceus.svg.png","sizes":"512x512","type":"image/png","purpose":"any maskable"},{"src":"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Caduceus.svg/192px-Caduceus.svg.png","sizes":"192x192","type":"image/png","purpose":"any maskable"}]}'>
     
     <!-- iOS Strict PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -225,7 +227,11 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Setup Skipped')); });
+            window.addEventListener('load', () => {
+                // Dynamically inject worker inline script to force update on subfolders
+                const base64SW = "data:application/javascript;base64,Y29uc3QgQ0FDSEVfTkFNRSA9ICdyZWNhbGwtcGctdjInOwpjb25zdCB1cmxzVG9DYWNoZSA9IFsgJy4vJywgJy4vaW5kZXguaHRtbCcgXTsKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgZSA9PiB7IGUud2FpdFVudGlsKGNhY2hlcy5vcGVuKENBQ0hFX05BTUUpLnRoZW4oYyA9PiBjLmFkZEFsbCh1cmxzVG9DYWNoZSkpKTsgc2VsZi5za2lwV2FpdGluZygpOyB9KTsKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdhY3RpdmF0ZScsIGUgPT4geyBlLndhaXRVbnRpbChzZWxmLmNsaWVudHMuY2xhaW0oKSk7IH0pOwpzZWxmLmFkZEFsbEV2ZW50TGlzdGVuZXIoJ2ZldGNoJywgZSA9PiB7IGUucmVzcG9uZFdpdGgoY2FjaGVzLm1hdGNoKGUucmVxdWVzdCkudGhlbihyID0+IHIgfHwgZmV0Y2goZS5yZXF1ZXN0KSkpOyB9KTs=";
+                navigator.serviceWorker.register(base64SW, { scope: './' }).catch(err => console.log('SW Setup Skipped'));
+            });
         }
 
         const subjects = [
