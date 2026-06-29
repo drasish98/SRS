@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Master Recall | NEET PG Edition</title>
     
-    <link rel="manifest" href='data:application/json,{"name":"Master Recall NEET PG","short_name":"Recall PG","start_url":".","display":"standalone","background_color":"#000000","theme_color":"#5C715E","orientation":"portrait","icons":[{"src":"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Caduceus.svg/512px-Caduceus.svg.png","sizes":"512x512","type":"image/png","purpose":"any maskable"},{"src":"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Caduceus.svg/192px-Caduceus.svg.png","sizes":"192x192","type":"image/png","purpose":"any maskable"}]}'>
+    <link rel="manifest" href="manifest.json">
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -223,10 +223,10 @@
     </div>
 
     <script>
+        // Restored physical service worker connection
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const base64SW = "data:application/javascript;base64,Y29uc3QgQ0FDSEVfTkFNRSA9ICdyZWNhbGwtcGctdjInOwpjb25zdCB1cmxzVG9DYWNoZSA9IFsgJy4vJywgJy4vaW5kZXguaHRtbCcgXTsKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgZSA9PiB7IGUud2FpdFVudGlsKGNhY2hlcy5vcGVuKENBQ0hFX05BTUUpLnRoZW4oYyA9PiBjLmFkZEFsbCh1cmxzVG9DYWNoZSkpKTsgc2VsZi5za2lwV2FpdGluZygpOyB9KTsKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdhY3RpdmF0ZScsIGUgPT4geyBlLndhaXRVbnRpbChzZWxmLmNsaWVudHMuY2xhaW0oKSk7IH0pOwpzZWxmLmFkZEFsbEV2ZW50TGlzdGVuZXIoJ2ZldGNoJywgZSA9PiB7IGUucmVzcG9uZFdpdGgoY2FjaGVzLm1hdGNoKGUucmVxdWVzdCkudGhlbihyID0+IHIgfHwgZmV0Y2goZS5yZXF1ZXN0KSkpOyB9KTs=";
-                navigator.serviceWorker.register(base64SW, { scope: './' }).catch(err => console.log('SW Setup Skipped'));
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Setup Skipped'));
             });
         }
 
@@ -352,7 +352,7 @@
             }
         }
 
-        // --- MATH FIX: ABSOLUTE DATES FROM DAY 0 ---
+        // --- MATH FIX: ABSOLUTE TARGET DATES ---
         function addTask() {
             const sub = subSelect.value;
             const top = document.getElementById('topicInput').value;
@@ -362,9 +362,8 @@
             if (!sub || !top || intervals.length === 0) return alert("Please fill all fields.");
 
             let schedule = [];
-            let creationDate = new Date(); // This is Day 0
+            let creationDate = new Date(); // Day 0
             
-            // Calculate absolute target dates exactly matching the interval numbers
             for(let i=0; i < intervals.length; i++) {
                 let targetDate = new Date(creationDate);
                 targetDate.setDate(creationDate.getDate() + intervals[i]);
@@ -384,10 +383,9 @@
 
             task.status++; 
 
-            // If moving past R4, lock into the 21-day infinite loop (PG specific)
             if (task.status >= task.intervals.length) {
                 let nextLoopDate = new Date(); 
-                nextLoopDate.setDate(nextLoopDate.getDate() + 21);
+                nextLoopDate.setDate(nextLoopDate.getDate() + 21); // 21 DAY PG LOOP
                 
                 if(task.schedule.length <= task.status) {
                     task.schedule.push(formatDate(nextLoopDate));
@@ -406,13 +404,11 @@
                 if (task.schedule && Array.isArray(task.schedule) && task.schedule[task.status] < todayFormatted) {
                     shifted++;
                     
-                    // Find out exactly how many days late you are
                     let scheduledDate = new Date(task.schedule[task.status]);
                     let actualToday = new Date(todayFormatted);
                     let diffTime = actualToday.getTime() - scheduledDate.getTime();
                     let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
                     
-                    // Push the current due date AND all remaining future dates back by that exact difference
                     for(let i = task.status; i < task.schedule.length; i++) {
                         let shiftDate = new Date(task.schedule[i]);
                         shiftDate.setDate(shiftDate.getDate() + diffDays);
@@ -443,7 +439,6 @@
             }
         }
 
-        // --- BACKUP 5-DAY AUTOMATED WARNING MODULE ---
         function checkBackupReminder() {
             let lastBackupStr = localStorage.getItem('focusRecallLastBackup');
             const today = new Date();
