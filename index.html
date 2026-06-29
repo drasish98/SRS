@@ -6,6 +6,7 @@
     <title>Master Recall | NEET PG Edition</title>
     <link rel="manifest" href="manifest.json">
     
+    <!-- iOS Strict PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Recall PG">
@@ -202,6 +203,7 @@
         </main>
     </div>
 
+    <!-- Settings Modal -->
     <div id="settingsModal" class="modal hidden">
         <div class="modal-content">
             <h3 style="margin-top: 0;">System Settings</h3>
@@ -383,7 +385,7 @@
                 }
             } else {
                 let refDate = new Date();
-                refDate.setDate(refDate.getDate() + 15); // 15-DAY INFINITE LOOP PG
+                refDate.setDate(refDate.getDate() + 15); // 15-DAY INFINITE LOOP FIXED
                 if(task.schedule.length <= task.status) task.schedule.push(formatDate(refDate));
                 else task.schedule[task.status] = formatDate(refDate);
             }
